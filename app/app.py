@@ -34,7 +34,6 @@ def clear_input():
     st.session_state["info"] = ""
     st.session_state["interval"] = "Choose Account"
     st.session_state["handle"] = "None"
-    # file_pdf = None
 
 ####### ITEM PROCESSER ####
 if 'row' not in st.session_state:
@@ -45,7 +44,7 @@ if 'row' not in st.session_state:
 if file_csv:
     index = st.session_state['row']
     file = BytesIO(file_csv.getvalue())
-    df = CSVHandler().parse(file)[0]
+    df = CSVHandler().parse(file)
     len = len(df)
     df_readable = df.copy().astype(str)
 

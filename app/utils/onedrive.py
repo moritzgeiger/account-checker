@@ -1,7 +1,6 @@
 import onedrivesdk
 
 
-
 class OneDriveOperator():
     def __init__(self):
         pass
