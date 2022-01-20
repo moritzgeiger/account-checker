@@ -1,3 +1,7 @@
-
 onedrivesdk==2.0.1
 openpyxl==3.0.9
+streamlit==
+pandas==
+msgraph-core==0.2.2
+cryptography==2.8
+msal==2.21

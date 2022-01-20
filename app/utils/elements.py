@@ -1,5 +1,3 @@
-from utils.csv_parse import CSVHandler
-import streamlit as st
 from io import BytesIO
 import pandas as pd
 import os
@@ -25,5 +23,5 @@ def show_df(df_readable, index):
     st.write(df_readable.iloc[index])
     interval = st.selectbox('Choose account:', options=dropdown, key='interval')
     info = st.text_input("enter additional info.", key="info")
-    file_pdf = st.file_uploader("Upload relevant PDF.", 
+    file_pdf = st.file_uploader("Upload relevant PDF.",
                                 type=([".pdf", ".PDF"]))

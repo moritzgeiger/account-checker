@@ -1,4 +1,5 @@
-import onedrivesdk
+from azure.identity import InteractiveBrowserCredential
+from msgraph.core import GraphClient
 
 
 class OneDriveOperator():
