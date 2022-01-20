@@ -25,4 +25,8 @@ class CSVHandler():
     def return_row(self, df):
         pass
 
+    def save_row(self, row, file_path):
+        with pd.ExcelWriter(file_path, engine='openpyxl', if_sheet_exists='overlay') as writer:
+            row.to_excel(writer, 'Journal')
+
 
