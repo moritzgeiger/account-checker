@@ -5,3 +5,4 @@ pandas==
 msgraph-core==0.2.2
 cryptography==2.8
 msal==2.21
+XlsxWriter==3.0.2
