@@ -11,11 +11,10 @@ config = json.load(open('app/config.json'))
 dropdown = list(config.keys())
 dropdown.insert(0, 'Choose Account')
 csv_handler = CSVHandler()
-
-
+ 
 def sidebar():
     file_csv = st.sidebar.file_uploader("Upload a CSV file.\nFirst column must be 'Buchungstag'",
-                                type=([".csv"]))
+                                type=([".csv"]), key='input_file')
     if file_csv:
         jump_row = st.sidebar.text_input("Jump to row (starts with 0):", key="jump")
         if st.sidebar.button('Jump'):
@@ -51,7 +50,7 @@ def show_row(row):
     sel_account = st.selectbox('Choose account:', options=dropdown, key='interval')
     input = st.text_input("enter additional info.", key="input")
     file_pdf = st.file_uploader("Upload relevant PDF.",
-                                type=([".pdf", ".PDF"]))
+                                type=([".pdf", ".PDF"]), key="file_pdf")
 
     return sel_account, input, file_pdf
 

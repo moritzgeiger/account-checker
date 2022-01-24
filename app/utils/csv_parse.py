@@ -15,16 +15,18 @@ class CSVHandler():
     def __init__(self):
         pass
     
+    def return_start(self, file):
+        byte_str = file.getvalue().splitlines()
+        return min([i for i, row in enumerate(byte_str) if str(row).startswith("b'Buchungstag")])
+
     def parse(self, file):
         """"Parses csv bytes file.
         Returns: 
         pd.DataFrame()
         """
-        # TODO: dynamic skiprows for various csv files
-        byte_str = file.read()
-        reader = csv.reader(io.StringIO(byte_str.decode("ISO-8859-1")))
-        start = min([i for i, row in enumerate(reader) if 'Buchungstag' in row])
+
         date_columns = ['Buchungstag', 'Valuta']
+        start = self.return_start(file)
         df = pd.read_csv(file, 
                         sep=';', 
                         skiprows=start, 
@@ -37,13 +39,13 @@ class CSVHandler():
         df['Umsatz'] = df.Umsatz.astype(float)
 
         return df
-
+    @st.cache(allow_output_mutation=True)
     def save_row(self, row, sel_account, info, file_pdf, unique_n):
         """Saves user input and row contents to Excel file and pdf directory
         """
         
         if file_pdf:
-            file_name = f'{unique_n}_{file_pdf.name}'
+            file_name = f'{int(unique_n)}_{file_pdf.name}'
             with open(os.path.join(PDF_DIRECTROY, file_name),"wb") as f: 
                 f.write(file_pdf.getbuffer())
 
@@ -87,5 +89,8 @@ class CSVHandler():
         else:
             # return max internal reference number + 1
             max_n = wb['interne Ablage (NUR ZAHLEN)'].max() + 1
-            return max_n
+            if max_n == max_n:
+                return max_n
+            else:
+                return 101
 

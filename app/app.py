@@ -34,6 +34,5 @@ if 'row' not in st.session_state:
     st.session_state['row'] = index
 
 ####### ROW ITERATOR #######
-st.write(file_csv)
 _iterator = iterator(file_csv)
 
