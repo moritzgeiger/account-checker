@@ -17,14 +17,13 @@ class CSVHandler():
     
     def return_start(self, file):
         byte_str = file.getvalue().splitlines()
-        return min([i for i, row in enumerate(byte_str) if str(row).startswith("b'Buchungstag")])
+        return min([i for i, row in enumerate(byte_str) if 'Buchungstag' in str(row)[:20]])
 
     def parse(self, file):
         """"Parses csv bytes file.
         Returns: 
         pd.DataFrame()
         """
-
         date_columns = ['Buchungstag', 'Valuta']
         start = self.return_start(file)
         df = pd.read_csv(file, 
@@ -39,7 +38,7 @@ class CSVHandler():
         df['Umsatz'] = df.Umsatz.astype(float)
 
         return df
-    @st.cache(allow_output_mutation=True)
+
     def save_row(self, row, sel_account, info, file_pdf, unique_n):
         """Saves user input and row contents to Excel file and pdf directory
         """
