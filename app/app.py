@@ -9,6 +9,7 @@ import json
 from utils.elements import sidebar, show_row, write_operation, iterator
 # from utils.onedrive import OneDriveoperator
 from utils.csv_parse import CSVHandler
+from utils.onedrive import OneDriveOperator
 
 
 ########## PAGE CONFIG ##############
@@ -29,7 +30,7 @@ st.title('Welcome to the Account Checker 🧾')
 
 ####### INIT PROCESSOR ####
 if 'row' not in st.session_state:
-    st.write('Upload initial file in sidebar.')
+    st.write('Please follow the steps in sidebar.')
     index = 0
     st.session_state['row'] = index
 
