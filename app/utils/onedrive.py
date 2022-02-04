@@ -37,19 +37,25 @@ SCOPES = [
 
 class OneDriveOperator():
     def __init__(self):
-        self.client_app = msal.ConfidentialClientApplication(
+        try:
+            self.client_app = msal.ConfidentialClientApplication(
                     client_id=CLIENT_ID,
                     authority=AUTHORITY_URL + account_type,
                     client_credential=client_secret,
                 )
+        except: 
+            st.error("Couldn't connect to OneDrive. Try again later.")
 
     
     def login_link(self):
         graph_url = AUTHORITY_URL + account_type + AUTH_ENDPOINT
         
-        auth_url = self.client_app.get_authorization_request_url(scopes=SCOPES, 
+        try: 
+            auth_url = self.client_app.get_authorization_request_url(scopes=SCOPES, 
                                                             state='ABC', 
                                                             redirect_uri=redirect_uri)
+        except: 
+            st.error("Couldn't create Login Link. Try again later.")
         return auth_url
 
 
@@ -79,8 +85,6 @@ class OneDriveOperator():
 
         # drive_id = 'c0073bb4af3e3162'
         drive_id = '70aa8ea98388698d'
-        # result = requests.get(f'{ENDPOINT}/me/drives', headers=headers, params=params)
-        # result = requests.get(f'{ENDPOINT}/drives/{drive_id}', headers=headers, params=params)
         result = requests.get(f'{ENDPOINT}/drives/{drive_id}/root/children', headers=headers, params=params)
         return result.json()
 
@@ -89,6 +93,13 @@ class OneDriveOperator():
         avail_folders = {val.get('name'): val.get('id') for val in result.get('value')}
 
         return avail_folders
+
+    def choose_file(self, item_id, token):
+
+        headers={'Authorization': 'Bearer ' + token}
+        params={'allowexternal': 'true'}
+        result = requests.get(f'{ENDPOINT}/me/drive/items/{item_id}', headers=headers, params=params)
+        return result.content
 
     def add_row(self):
         pass

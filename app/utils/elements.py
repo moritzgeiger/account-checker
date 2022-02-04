@@ -16,15 +16,35 @@ csv_handler = CSVHandler()
 def sidebar():
     one_drive_client = OneDriveOperator()
 
-    code = st.experimental_get_query_params().get('code')
-    if code:
-        st.session_state['code'] = code
-        token = one_drive_client.authenticate(st.session_state['code'][0])
-        if not st.session_state.get('token'):
-            st.session_state['token'] = token
-        if st.session_state.get('token') and not st.session_state.get('folders'):
-            folders = one_drive_client.choose_folder(st.session_state.get('token'))
-            st.session_state['folders'] = folders
+    if st.session_state.get('logged_and_folder'):
+        # st.write(f'logged in!!!')
+        st.sidebar.write('You are logged in.')
+        folders = dict(st.session_state.get('folders'))
+        folder_keys = ['Choose folder'] + list(folders.keys()) 
+        sel_folder = st.sidebar.selectbox('Choose folder:', options=folder_keys)
+        folder_id = folders.get(sel_folder)
+        # st.write(folder_id)
+        st.sidebar.markdown('---')
+    
+    else:
+        code = st.experimental_get_query_params().get('code')
+        if code or st.session_state.get('code'):
+            # st.write('code is there!')
+            st.session_state['code'] = code
+            if not st.session_state.get('folders'):
+                # st.write('don"t have folders yet')
+                token = one_drive_client.authenticate(st.session_state['code'][0])
+                st.session_state['token'] = token
+                # st.write(f"i have a token: {st.session_state['token']}")
+                if st.session_state.get('token'):
+                    folders = one_drive_client.choose_folder(st.session_state.get('token'))
+                    # st.write(folders)
+                    st.session_state['folders'] = folders
+                    st.session_state['logged_and_folder'] = True
+                    st.button('Next')
+            else:
+                st.write(f'logged and folders: {st.session_state["logged_and_folder"]}')
+
         else:
             try:
                 login_url = one_drive_client.login_link()
@@ -34,25 +54,6 @@ def sidebar():
             except Exception as e:
                 st.sidebar.error(f"Could not generate login link.\n Check your internet connection.")
                 st.sidebar.error(f"{e}")
-
-
-    if st.session_state.get('is_logged') and st.session_state.get('folders'):
-        st.sidebar.write('You are logged in.')
-        folders = dict(st.session_state.get('folders'))
-        folder_keys = ['Choose folder'] + list(folders.keys()) 
-        sel_folder = st.sidebar.selectbox('Choose folder:', options=folder_keys)
-        folder_id = folders.get(sel_folder)
-        st.sidebar.markdown('---')
-    else:
-        st.write('naa')
-
-    
-
-    
-
-    
-
-
     
 
     file_csv = st.sidebar.file_uploader("Upload a CSV file.\nFirst column must be 'Buchungstag'",
