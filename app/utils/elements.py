@@ -12,7 +12,8 @@ config = json.load(open('app/config.json'))
 dropdown = list(config.keys())
 dropdown.insert(0, 'Choose Account')
 csv_handler = CSVHandler()
- 
+REDIRECT_URI = os.environ.get('REDIRECT_URI', 'http://localhost:8501/')
+
 def sidebar():
     one_drive_client = OneDriveOperator()
 
@@ -20,28 +21,31 @@ def sidebar():
         # st.write(f'logged in!!!')
         st.sidebar.write('You are logged in.')
         folders = dict(st.session_state.get('folders'))
-        folder_keys = ['Choose folder'] + list(folders.keys()) 
+        folder_keys = ['Choose folder'] + list(folders.keys())
         sel_folder = st.sidebar.selectbox('Choose folder:', options=folder_keys)
         folder_id = folders.get(sel_folder)
         # st.write(folder_id)
         st.sidebar.markdown('---')
-    
+
     else:
         code = st.experimental_get_query_params().get('code')
+        st.write(code)
         if code or st.session_state.get('code'):
             # st.write('code is there!')
             st.session_state['code'] = code
             if not st.session_state.get('folders'):
+                st.write(st.session_state.get('code'))
                 # st.write('don"t have folders yet')
                 token = one_drive_client.authenticate(st.session_state['code'][0])
                 st.session_state['token'] = token
                 # st.write(f"i have a token: {st.session_state['token']}")
                 if st.session_state.get('token'):
                     folders = one_drive_client.choose_folder(st.session_state.get('token'))
-                    # st.write(folders)
+                    st.write(folders)
                     st.session_state['folders'] = folders
                     st.session_state['logged_and_folder'] = True
-                    st.button('Next')
+                    st.sidebar.button('NEXT')
+
             else:
                 st.write(f'logged and folders: {st.session_state["logged_and_folder"]}')
 
@@ -49,12 +53,12 @@ def sidebar():
             try:
                 login_url = one_drive_client.login_link()
                 st.sidebar.write(f"Please log in to your OneDrive:")
-                st.sidebar.write(f"[LOGIN]({login_url})")
+                st.sidebar.markdown(f'<a href="{login_url}" target="_self">LOGIN</a>', unsafe_allow_html=True)
                 st.sidebar.markdown('---')
             except Exception as e:
                 st.sidebar.error(f"Could not generate login link.\n Check your internet connection.")
                 st.sidebar.error(f"{e}")
-    
+
 
     file_csv = st.sidebar.file_uploader("Upload a CSV file.\nFirst column must be 'Buchungstag'",
                                 type=([".csv"]), key='input_file')
@@ -62,9 +66,9 @@ def sidebar():
         jump_row = st.sidebar.text_input("Jump to row (starts with 0):", key="jump")
         if st.sidebar.button('Jump'):
             st.session_state['row'] =  int(jump_row)
-            
 
-    
+
+
 
     st.sidebar.title("Credits")
     st.sidebar.write("App made by Moritz Geiger. Visit my GitHub <a href='https://github.com/moritzgeiger/' target='blank'>here</a>.",
@@ -86,7 +90,7 @@ def write_operation(handle=None, row_process=None, sel_account=None, input=None,
     st.session_state['row'] =  index + 1
     if handle:
         _saver = csv_handler.save_row(row_process, sel_account, input, file_pdf, unique_n)
-        
+
 
 def show_row(row):
     st.write(row)
@@ -115,8 +119,8 @@ def iterator(file_csv):
                 st.warning('Ooops, looks like you have saved that row already. Skip this one.')
 
             ## Handler radio
-            handle = st.radio('Choose operation:', 
-                            ('None', 'Process row', 'Skip row'), 
+            handle = st.radio('Choose operation:',
+                            ('None', 'Process row', 'Skip row'),
                             key='handle')
 
             if handle == 'Process row':
@@ -126,10 +130,10 @@ def iterator(file_csv):
                 if sel_account == 'Choose Account':
                     st.error('Please choose account first.')
                     process = False
-                
+
                 else:
-                    if st.button('Next', 
-                                on_click=write_operation, 
+                    if st.button('Next',
+                                on_click=write_operation,
                                 kwargs={'handle': handle,
                                 'row_process': row_process,
                                 'sel_account': sel_account,
@@ -138,7 +142,7 @@ def iterator(file_csv):
                                 'unique_n':unique_n},
                                 ):
                         st.write('processing...')
-            
+
             if handle == 'Skip row':
                 skip = False
                 if st.button('Next', on_click=write_operation):
