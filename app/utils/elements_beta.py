@@ -15,11 +15,52 @@ csv_handler = CSVHandler()
 REDIRECT_URI = os.environ.get('REDIRECT_URI', 'http://localhost:8501/')
 
 def sidebar():
-    st.write("SOURCE FILE")
+    one_drive_client = OneDriveOperator()
+
+    if st.session_state.get('logged_and_folder'):
+        # st.write(f'logged in!!!')
+        st.sidebar.write('You are logged in.')
+        folders = dict(st.session_state.get('folders'))
+        folder_keys = ['Choose folder'] + list(folders.keys())
+        sel_folder = st.sidebar.selectbox('Choose folder:', options=folder_keys)
+        folder_id = folders.get(sel_folder)
+        # st.write(folder_id)
+        st.sidebar.markdown('---')
+
+    else:
+        code = st.experimental_get_query_params().get('code')
+        st.write(code)
+        if code or st.session_state.get('code'):
+            # st.write('code is there!')
+            st.session_state['code'] = code
+            if not st.session_state.get('folders'):
+                st.write(st.session_state.get('code'))
+                # st.write('don"t have folders yet')
+                token = one_drive_client.authenticate(st.session_state['code'][0])
+                st.session_state['token'] = token
+                # st.write(f"i have a token: {st.session_state['token']}")
+                if st.session_state.get('token'):
+                    folders = one_drive_client.choose_folder(st.session_state.get('token'))
+                    st.write(folders)
+                    st.session_state['folders'] = folders
+                    st.session_state['logged_and_folder'] = True
+                    st.sidebar.button('NEXT')
+
+            else:
+                st.write(f'logged and folders: {st.session_state["logged_and_folder"]}')
+
+        else:
+            try:
+                login_url = one_drive_client.login_link()
+                st.sidebar.write(f"Please log in to your OneDrive:")
+                st.sidebar.markdown(f'<a href="{login_url}" target="_self">LOGIN</a>', unsafe_allow_html=True)
+                st.sidebar.markdown('---')
+            except Exception as e:
+                st.sidebar.error(f"Could not generate login link.\n Check your internet connection.")
+                st.sidebar.error(f"{e}")
+
+
     file_csv = st.sidebar.file_uploader("Upload a CSV file.\nFirst column must be 'Buchungstag'",
-                            type=([".csv"]), key='input_file')
-    st.write("TARGET FILE")
-    file_xlsx = st.sidebar.file_uploader("Upload a CSV file.\nFirst column must be 'Buchungstag'",
                                 type=([".csv"]), key='input_file')
     if file_csv:
         jump_row = st.sidebar.text_input("Jump to row (starts with 0):", key="jump")
