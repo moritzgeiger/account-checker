@@ -8,6 +8,7 @@ import os
 import streamlit as st
 import csv
 import io
+import json
 
 PDF_DIRECTROY = 'app/temp'
 
@@ -17,14 +18,15 @@ class ExcelWriter():
       """Saves user input and row contents to Excel file and pdf directory
       """
       EXCEL_DIRECTORY = st.session_state.get('excel_directory')
-
       if file_pdf:
           file_name = f'{int(unique_n)}_{file_pdf.name}'
           with open(os.path.join(PDF_DIRECTROY, file_name),"wb") as f:
               f.write(file_pdf.getbuffer())
 
       ### GET MAX ROW ###
-      wb = pd.read_excel(EXCEL_DIRECTORY, sheet_name='Journal',)
+      schema = json.load(open("app/utils/schema_target.json"))
+      st.write(schema)
+      wb = pd.read_excel(EXCEL_DIRECTORY, sheet_name='Journal', dtype=schema)
       max_row = len(wb)
       st.write(wb)
 
@@ -45,12 +47,7 @@ class ExcelWriter():
       df_dict['Betrag'] = [row.Umsatz]
       df_dict['unique_identifier'] = ''.join(row.astype(str))
       row_transformed = pd.DataFrame(df_dict)
-      st.write(row_transformed)
-      st.write(max_row+1)
-      st.write(wb.dtypes)
-      st.write(row_transformed.dtypes)
       concat = pd.concat([wb,row_transformed])
-      st.write(concat)
       with pd.ExcelWriter(EXCEL_DIRECTORY, engine='openpyxl', mode='a', if_sheet_exists='overlay') as writer:
           # row_transformed.to_excel(writer, 'Journal', startrow=max_row+1, header=False, index=False)
           concat.to_excel(writer, 'Journal', startrow=max_row+1, header=False, index=False)

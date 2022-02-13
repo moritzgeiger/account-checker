@@ -1,0 +1,14 @@
+{
+  "Konto": "object",
+  "Art": "object",
+  "Spezifikation": "object",
+  "Kontoauswahl": "object",
+  "Datum": "datetime64[ns]",
+  "Monat": "int64",
+  "Beleg": "object",
+  "Beschreibung": "object",
+  "Ort": "object",
+  "interne Ablage (NUR ZAHLEN)": "int64",
+  "Betrag": "float64",
+  "unique_identifier": "object"
+}
