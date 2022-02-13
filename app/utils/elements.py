@@ -5,6 +5,7 @@ import json
 import streamlit as st
 from utils.csv_parse import CSVHandler
 from utils.onedrive import OneDriveOperator
+from utils.excel_writer import ExcelWriter
 
 
 ### CONFIGS ###
@@ -12,22 +13,42 @@ config = json.load(open('app/config.json'))
 dropdown = list(config.keys())
 dropdown.insert(0, 'Choose Account')
 csv_handler = CSVHandler()
+excel_handler = ExcelWriter()
 REDIRECT_URI = os.environ.get('REDIRECT_URI', 'http://localhost:8501/')
 
 def sidebar():
-    st.write("SOURCE FILE")
+    st.sidebar.write("TARGET FILE")
+    file_xlsx = st.sidebar.file_uploader("Upload your target Excel file.",
+                                type=([".xlsx"]), key='output_file')
+    st.sidebar.markdown("[Check schema requirements](https://raw.githubusercontent.com/moritzgeiger/account-check/master/static/schema_output.png)")
+
+    if file_xlsx:
+        excel_directory = 'app/temp/cur_file.xlsx'
+        with open(excel_directory, "wb") as f:
+            f.write(file_xlsx.getbuffer())
+        st.session_state['excel_directory'] = excel_directory
+
+    st.sidebar.write("SOURCE FILE")
     file_csv = st.sidebar.file_uploader("Upload a CSV file.\nFirst column must be 'Buchungstag'",
                             type=([".csv"]), key='input_file')
-    st.write("TARGET FILE")
-    file_xlsx = st.sidebar.file_uploader("Upload a CSV file.\nFirst column must be 'Buchungstag'",
-                                type=([".csv"]), key='input_file')
     if file_csv:
         jump_row = st.sidebar.text_input("Jump to row (starts with 0):", key="jump")
         if st.sidebar.button('Jump'):
             st.session_state['row'] =  int(jump_row)
 
+    st.sidebar.write('---')
 
-
+    if file_xlsx:
+        output = BytesIO()
+        # TODO: Zipfile https://discuss.streamlit.io/t/how-to-download-local-folder/3717/3
+        with open(excel_directory, 'rb') as f:
+            s = f.read()
+            st.sidebar.write('FINISH WORK')
+            st.sidebar.download_button(
+              label='Download file',
+              data=s,
+              file_name=excel_directory.split('/')[-1],
+              )
 
     st.sidebar.title("Credits")
     st.sidebar.write("App made by Moritz Geiger. Visit my GitHub <a href='https://github.com/moritzgeiger/' target='blank'>here</a>.",
@@ -48,7 +69,7 @@ def write_operation(handle=None, row_process=None, sel_account=None, input=None,
     index = st.session_state['row']
     st.session_state['row'] =  index + 1
     if handle:
-        _saver = csv_handler.save_row(row_process, sel_account, input, file_pdf, unique_n)
+        _saver = excel_handler.save_row(row_process, sel_account, input, file_pdf, unique_n)
 
 
 def show_row(row):
@@ -73,7 +94,7 @@ def iterator(file_csv):
             row_process = df.iloc[index]
             # show row and instantiate user inputs
             sel_account, input, file_pdf = show_row(row)
-            unique_n = csv_handler.validator(row_process)
+            unique_n = excel_handler.validator(row_process)
             if unique_n == -999:
                 st.warning('Ooops, looks like you have saved that row already. Skip this one.')
 
