@@ -6,10 +6,12 @@ import streamlit as st
 from utils.csv_parse import CSVHandler
 from utils.onedrive import OneDriveOperator
 from utils.excel_writer import ExcelWriter
+from utils.zipper import zipper
+from utils.purge_temps import purge_temps
 
 
 ### CONFIGS ###
-config = json.load(open('app/config.json'))
+config = json.load(open('config.json'))
 dropdown = list(config.keys())
 dropdown.insert(0, 'Choose Account')
 csv_handler = CSVHandler()
@@ -17,15 +19,16 @@ excel_handler = ExcelWriter()
 REDIRECT_URI = os.environ.get('REDIRECT_URI', 'http://localhost:8501/')
 
 def sidebar():
-    st.sidebar.write("TARGET FILE")
+
     file_xlsx = st.sidebar.file_uploader("Upload your target Excel file.",
                                 type=([".xlsx"]), key='output_file')
     st.sidebar.markdown("[Check schema requirements](https://raw.githubusercontent.com/moritzgeiger/account-check/master/static/schema_output.png)")
 
-    if file_xlsx:
-        excel_directory = 'app/temp/cur_file.xlsx'
+    if file_xlsx and not st.session_state.get('excel_directory'):
+        excel_directory = 'temp/cur_file.xlsx'
         with open(excel_directory, "wb") as f:
             f.write(file_xlsx.getbuffer())
+            f.close()
         st.session_state['excel_directory'] = excel_directory
 
     st.sidebar.write("SOURCE FILE")
@@ -38,17 +41,31 @@ def sidebar():
 
     st.sidebar.write('---')
 
-    if file_xlsx:
-        output = BytesIO()
-        # TODO: Zipfile https://discuss.streamlit.io/t/how-to-download-local-folder/3717/3
-        with open(excel_directory, 'rb') as f:
-            s = f.read()
-            st.sidebar.write('FINISH WORK')
-            st.sidebar.download_button(
-              label='Download file',
-              data=s,
-              file_name=excel_directory.split('/')[-1],
-              )
+    output_dir = 'temp/'
+    zip_filename = 'journal_output.zip'
+
+    if st.session_state.get('excel_directory'):
+
+        finish = st.sidebar.button(
+              label='Finish work',
+        )
+        if finish:
+          s = zipper(
+                zip_filename=zip_filename,
+                source_path=output_dir,
+          )
+          dl_button = st.sidebar.download_button(
+                label='Download file',
+                data=s.getvalue(),
+                file_name=zip_filename,
+                )
+
+    delete = st.sidebar.button(
+        label='Clear temp folders',
+    )
+    if delete:
+        _ = purge_temps()
+        st.sidebar.write('temp/ folder emptied.')
 
     st.sidebar.title("Credits")
     st.sidebar.write("App made by Moritz Geiger. Visit my GitHub <a href='https://github.com/moritzgeiger/' target='blank'>here</a>.",
@@ -119,7 +136,7 @@ def iterator(file_csv):
                                 'sel_account': sel_account,
                                 'input': input,
                                 'file_pdf': file_pdf,
-                                'unique_n':unique_n},
+                                'unique_n':unique_n if file_pdf else None},
                                 ):
                         st.write('processing...')
 
