@@ -1,4 +1,4 @@
-FROM python:3.7
+FROM python:3.8
 
 # Expose port you want your app on
 EXPOSE 8080
