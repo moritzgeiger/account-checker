@@ -3,7 +3,7 @@ openpyxl==3.0.9
 streamlit==1.6.0
 pandas==1.4.0
 msgraph-core==0.2.2
-cryptography==2.8
-msal==2.21
+# cryptography==2.8
+# msal==2.21
 XlsxWriter==3.0.2
 python-dotenv
