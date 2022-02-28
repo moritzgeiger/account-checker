@@ -4,22 +4,22 @@ steps:
   args:
   - 'build'
   - '-t'
-  - 'gcr.io/wagon-555-305810/account-check:$COMMIT_SHA'
+  - 'gcr.io/account-check/account-check:$COMMIT_SHA'
   - '-f'
   - './Dockerfile'
   - '.'
 # # Push the container image to Container Registry
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['push', 'gcr.io/wagon-555-305810/account-check:$COMMIT_SHA']
+  args: ['push', 'gcr.io/account-check/account-check:$COMMIT_SHA']
 # Deploy container image to Cloud Run
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
   entrypoint: gcloud
   args:
   - 'run'
   - 'deploy'
-  - 'wagon-555-305810'
+  - 'account-check'
   - '--image'
-  - 'gcr.io/wagon-555-305810/account-check:$COMMIT_SHA'
+  - 'gcr.io/account-check/account-check:$COMMIT_SHA'
   - '--region'
   - 'europe-west1'
   - '--platform'
@@ -27,5 +27,5 @@ steps:
   - '--max-instances'
   - '2'
 images:
-- 'gcr.io/wagon-555-305810/account-check:$COMMIT_SHA'
+- 'gcr.io/account-check/account-check:$COMMIT_SHA'
 timeout: 9999s
