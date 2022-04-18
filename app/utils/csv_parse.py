@@ -33,6 +33,7 @@ class CSVHandler():
                         dayfirst=True,
                         )
         df['Umsatz'] = df.Umsatz.astype(float)
+        df = df.sort_values(by='Buchungstag').reset_index(drop=True)
 
         return df
 
